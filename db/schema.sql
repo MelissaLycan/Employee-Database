@@ -3,34 +3,33 @@ CREATE DATABASE employees_db;
 
 USE employees_db;
 
-CREATE TABLE employee (
-  id INT NOT NULL PRIMARY KEY,
-  first_name VARCHAR(30) NOT NULL,
-  last_name VARCHAR(30) NOT NULL,
-  role_id INT,
-  department_id INT,
-  FOREIGN KEY (department_id)
-    REFERENCES department(id)
-  FOREIGN KEY (role_id)
-    REFERENCES roles(id)
-);
+CREATE TABLE department (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  department_name VARCHAR(30) NOT NULL);
 
-CREATE TABLE roles (
-  id INT NOT NULL KEY,
+  CREATE TABLE roles (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   job_title VARCHAR(30) NOT NULL,
   salary DECIMAL(10, 2) NOT NULL,
   department_id INT,
   FOREIGN KEY (department_id)
     REFERENCES department(id)
-    ON DELETE SET NULL
 );
 
-CREATE TABLE department (
-  id INT NOT NULL KEY,
-  department_name VARCHAR(30),
+CREATE TABLE employee (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(45) NOT NULL,
+  last_name VARCHAR(45) NOT NULL,
+  role_id INT,
   manager_id INT,
   FOREIGN KEY (manager_id)
-    REFERENCES employee(id)
+    REFERENCES employee(id),
+  FOREIGN KEY (role_id)
+    REFERENCES roles(id)
 );
+
+
+
+
 
 SELECT DATABASE()
