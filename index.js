@@ -1,7 +1,8 @@
-const mysql = require("mysql2");
-const inquier = require("inquirer");
+const mysql2 = require("mysql2");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
 
-const connection = mysql.createConnection({
+const connection = mysql2.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
@@ -10,9 +11,10 @@ const connection = mysql.createConnection({
 });
 
 function startPrompt() {
-  const firstQuestion = inquirer.prompt([
-    {
+  inquirer
+    .prompt({
       type: "list",
+      name: "routes",
       message: "What would you like to do?",
       choices: [
         "View all departments",
@@ -22,23 +24,19 @@ function startPrompt() {
         "Add a role",
         "Add an employee",
         "Update Employee Role",
+        "End",
       ],
-      name: "routes",
-    },
-  ]);
-
-  inquier
-    .prompt(startQuestion)
-    .then((response) => {
-      switch (response.action) {
-        case "View all employee":
-          viewAll("employee");
+    })
+    .then(function ({ routes }) {
+      switch (routes) {
+        case "View all employees":
+          viewAllEmployees();
           break;
         case "View all roles":
-          viewAll("roles");
+          viewAllRoles();
           break;
         case "View all departments":
-          viewAll("departments");
+          viewAllDepartments();
           break;
         case "Add a department":
           addNewDepartment();
@@ -62,22 +60,33 @@ function startPrompt() {
 }
 
 console.log("Welcome to the Team Database");
+startPrompt();
 
-const viewAll = (table) => {
-  let query;
-  if (table === "department") {
-    query = `SELECT * FROM ${departments}`;
-  } else if (table === "role") {
-    query = `SELECT * FROM ${roles}`;
-  } else {
-    query = `SELECT * FROM ${employee} ;`;
-  }
-  connection.query(query, (err, res) => {
+const viewAllDepartments = () => {
+  connection.query("SELECT * FROM department", function (err, res, fields) {
     if (err) throw err;
     console.table(res);
-
     startPrompt();
   });
+};
+
+const viewAllRoles = () => {
+  connection.query("SELECT * FROM roles", function (err, res, fields) {
+    if (err) throw err;
+    console.table(res);
+    startPrompt();
+  });
+};
+
+const viewAllEmployees = () => {
+  connection.query(
+    "SELECT * FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id",
+    function (err, res, fields) {
+      if (err) throw err;
+      console.table(res);
+      startPrompt();
+    }
+  );
 };
 
 const addNewDepartment = () => {
@@ -85,18 +94,18 @@ const addNewDepartment = () => {
     {
       type: "input",
       name: "department_name",
-      message: "what is the new department name?",
+      message: "What is the new department name?",
     },
   ];
 
-  inquier
+  inquirer
     .prompt(questions)
     .then((response) => {
-      const query = `INSERT INTO department (name) VALUES (?)`;
-      connection.query(query, [response.name], (err, res) => {
+      const query = `INSERT INTO department (department_name) VALUES (?)`;
+      connection.query(query, [response.department_name], (err, res) => {
         if (err) throw err;
         console.log(
-          `Successfully inserted ${response.name} department at id ${res.insertId}`
+          `Successfully inserted ${response.department_name} department at id ${res.insertId}`
         );
         startPrompt();
       });
@@ -107,9 +116,15 @@ const addNewDepartment = () => {
 };
 
 const addNewRole = () => {
-  //get all department
-  const departments = [];
-  connection.query("SELECT * FROM departments", (err, res) => {
+  let questions = [
+    {
+      type: "input",
+      name: "department_name",
+      message: "What is the new department name?",
+    },
+  ];
+  inquirer.prompt(questions);
+  connection.query("SELECT * FROM roles", (err, res) => {
     if (err) throw err;
 
     res.forEach((dep) => {
