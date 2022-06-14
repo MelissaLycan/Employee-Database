@@ -39,10 +39,10 @@ function startPrompt() {
           viewAllDepartments();
           break;
         case "Add a department":
-          addNewDepartment();
+          newDepartment();
           break;
         case "Add a role":
-          addNewRole();
+          newRole();
           break;
         case "Add an employee":
           newEmployee();
@@ -89,7 +89,7 @@ const viewAllEmployees = () => {
   );
 };
 
-const addNewDepartment = () => {
+const newDepartment = () => {
   let questions = [
     {
       type: "input",
@@ -143,9 +143,7 @@ const addNewRole = () => {
         [[response.job_title, response.salary, response.department_id]],
         (err, res) => {
           if (err) throw err;
-          console.log(
-            `Successfully inserted ${response.title} role at id ${res.insertId}`
-          );
+          console.log(`Successfully inserted ${res} role at id ${res.id}`);
           startPrompt();
         }
       );
@@ -179,32 +177,31 @@ const newEmployee = () => {
       choices: [1, 2, 3, 4, 5, "NULL"],
       name: "manager_id",
     },
-    {
-      type: "list",
-      message: "What is their job_title",
-      choices: ["Manager", "Engineer", "Intern", "Sales Person"],
-      name: "job_title",
-    },
-    {
-      type: "list",
-      message: "What is the Salary of the new employee?",
-      choices: [60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000],
-      name: "salary",
-    },
-    {
-      type: "list",
-      message: "What is their department name?",
-      choices: ["Marketing", "Development", "Finance", "Operations", "Sales"],
-      name: "department_name",
-    },
+    // {
+    //   type: "list",
+    //   message: "What is their job_title",
+    //   choices: ["Manager", "Engineer", "Intern", "Sales Person"],
+    //   name: "job_title",
+    // },
+    // {
+    //   type: "list",
+    //   message: "What is the Salary of the new employee?",
+    //   choices: [60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000],
+    //   name: "salary",
+    // },
+    // {
+    //   type: "list",
+    //   message: "What is their department name?",
+    //   choices: ["Marketing", "Development", "Finance", "Operations", "Sales"],
+    //   name: "department_name",
+    // },
   ];
 
   inquirer
     .prompt(questions)
     .then((response) => {
-      const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)`;
-      const query2 = `INSERT INTO roles (job_title, salary) VALUES (?)`;
-      const query3 = `INSERT INTO department(department_name) VALUES (?)`;
+      const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)``INSERT INTO roles (job_title, salary, department_id) VALUES (?)`;
+      // const query2 = `INSERT INTO roles (job_title, salary, department_id) VALUES (?)`;
 
       connection.query(
         query,
@@ -214,85 +211,84 @@ const newEmployee = () => {
             response.last_name,
             response.role_id,
             response.manager_id,
+            response.job_title,
+            response.salary,
+            response.department_id,
           ],
         ],
         (err, res) => {
           if (err) throw err;
           console.table(res);
         }
-      ),
-        connection.query(
-          query2,
-          [[response.job_title, response.salary]],
-          (err, res) => {
-            if (err) throw err;
-            console.table(res);
-          }
-        ),
-        connection.query(
-          query3,
-          [[response.department_name]],
-          (err, res) => {
-            if (err) throw err;
-            console.log(res);
-          },
-
-          startPrompt()
-        );
+        // ),
+        //   connection.query(
+        //     query2,
+        //     [[response.job_title, response.salary]],
+        //     (err, res) => {
+        //       if (err) throw err;
+        //       console.table(res);
+        //     }
+        //   ),
+        //   connection.query(
+        //     query3,
+        //     [[response.department_name]],
+        //     (err, res) => {
+        //       if (err) throw err;
+        //       console.log(res);
+        //     },
+      );
+      startPrompt();
     })
     .catch((err) => {
       console.error(err);
     });
+};
 
-  const updateRole = () => {
-    connection.query("SELECT * FROM EMPLOYEE", (err, emplRes) => {
-      if (err) throw err;
-      const employeeChoice = [];
-      emplRes.forEach(({ first_name, last_name, id }) => {
-        employeeChoice.push({
-          name: first_name + " " + last_name,
-          value: id,
-        });
+const updateRole = () => {
+  const empChoice = [];
+  const roleChoice = [];
+  let questions = [
+    {
+      type: "list",
+      name: "id",
+      choices: empChoice,
+      message: "Whose role do you want to update?",
+    },
+    {
+      type: "list",
+      name: "role_id",
+      choices: roleChoice,
+      message: "What is the employee's new role?",
+    },
+  ];
+  const query = `SELECT * FROM EMPLOYEE`;
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+    res.forEach(({ first_name, last_name, id }) => {
+      empChoice.push({
+        name: first_name + " " + last_name,
+        value: id,
       });
     });
-
-    //get all the role list to make choice of employee's role
-    connection.query("SELECT * FROM ROLE", (err, res) => {
+    console.log(empChoice);
+    connection.query(`SELECT * FROM ROLES`, (err, res) => {
       if (err) throw err;
-      const roleChoice = [];
-      rolRes.forEach(({ job_title, id }) => {
+      res.forEach(({ job_title, id }) => {
         roleChoice.push({
           name: job_title,
           value: id,
         });
       });
 
-      let questions = [
-        {
-          type: "list",
-          name: "id",
-          choices: employeeChoice,
-          message: "Whose role do you want to update?",
-        },
-        {
-          type: "list",
-          name: "role_id",
-          choices: roleChoice,
-          message: "What is the employee's new role?",
-        },
-      ];
-
       inquirer
         .prompt(questions)
         .then((response) => {
-          const query = `UPDATE EMPLOYEE SET ? WHERE ?? = ?;`;
           connection.query(
-            query,
+            `UPDATE employee SET id WHERE role_id`,
             [{ role_id: response.role_id }, "id", response.id],
             (err, res) => {
               if (err) throw err;
-
-              console.log("successfully updated!");
+              console.log(res);
               startPrompt();
             }
           );
@@ -301,5 +297,5 @@ const newEmployee = () => {
           console.error(err);
         });
     });
-  };
+  });
 };
