@@ -128,10 +128,10 @@ const newRole = () => {
       message: "What is the Salary for this Role?",
     },
     {
-      type: "input",
+      type: "list",
       name: "department_id",
-      message: "What is the department name this role belongs to?",
       choices: [1, 2, 3, 4, 5],
+      message: "What is the department id this role belongs to?",
     },
   ];
   inquirer

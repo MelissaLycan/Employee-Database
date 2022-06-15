@@ -34,6 +34,8 @@ THEN I am prompted to select an employee to update and their new role and this i
 
 ## Demo
 
+[You may find the VIDEO HERE or in Assets Folder](./Assets/Employee-Database-SS.mp4)
+
 ## GitHub
 
 [Link to Github Code](https://github.com/MelissaLycan/Employee-Database.git)
